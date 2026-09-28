@@ -1,0 +1,74 @@
+{
+  "API": "/api/auth/verifyOTP",
+  "data": {
+    "message": "OTP verified successfully",
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJfaWQiOiI2NzIwNzZmZjZjZTFlNGEyNTc1YzdlOGMiLCJ1c2VySW1hZ2UiOm51bGwsImVtYWlsIjpudWxsLCJmdWxsTmFtZSI6bnVsbCwicGFuQ2FyZCI6bnVsbCwiZGVzaWduYXRpb24iOm51bGwsInBob25lTm8iOiI2MjA0NTEwOTE5Iiwib3duUmVmZXJhbENvZGUiOm51bGwsInJlZmVyYWxDb2RlIjpudWxsLCJyb2xlIjoidXNlciIsImlzVmVyaWZpZWQiOmZhbHNlLCJjcmVhdGVkQXQiOiIyMDI0LTEwLTI5VDA1OjQ3OjQzLjk2OFoiLCJfX3YiOjAsImFjY2VzcyI6eyJfaWQiOiI2NzIwNzZmZjZjZTFlNGEyNTc1YzdlOGUiLCJ1c2VyIjoiNjcyMDc2ZmY2Y2UxZTRhMjU3NWM3ZThjIiwibWFya2V0cGxhY2VCdXllciI6dHJ1ZSwibWFya2V0cGxhY2VTdXBwbGllciI6ZmFsc2UsInNjcmFwQnV5ZXIiOmZhbHNlLCJzY3JhcFN1cHBsaWVyIjpmYWxzZSwiY2xvdWRGYWN0b3J5QnV5ZXIiOmZhbHNlLCJjbG91ZEZhY3RvcnlTZWxsZXIiOmZhbHNlLCJzdGF0dXMiOiJhY3RpdmUiLCJjcmVhdGVkQXQiOiIyMDI0LTEwLTI5VDA1OjQ3OjQzLjk3MloiLCJfX3YiOjB9LCJjb21wYW55Ijp7Il9pZCI6IjY3MjA3NmZmNmNlMWU0YTI1NzVjN2U5MCIsInVzZXIiOiI2NzIwNzZmZjZjZTFlNGEyNTc1YzdlOGMiLCJjb250YWN0IjoiNjIwNDUxMDkxOSIsInN0YXR1cyI6InBlbmRpbmciLCJjcmVhdGVkQXQiOiIyMDI0LTEwLTI5VDA1OjQ3OjQzLjk3NloiLCJfX3YiOjB9LCJpYXQiOjE3MzAxODA5MzQsImV4cCI6MTczMTA0NDkzNH0.wwABs8lzLzgHwIDlWI6DBe9gUawqo7Yx1jwUX377-hU",
+    "data": {
+      "_id": "672076ff6ce1e4a2575c7e8c",
+      "userImage": null,
+      "email": null,
+      "fullName": null,
+      "panCard": null,
+      "designation": null,
+      "phoneNo": "6204510919",
+      "ownReferalCode": null,
+      "referalCode": null,
+      "role": "user",
+      "isVerified": false,
+      "createdAt": "2024-10-29T05:47:43.968Z",
+      "__v": 0,
+      "access": {
+        "_id": "672076ff6ce1e4a2575c7e8e",
+        "user": "672076ff6ce1e4a2575c7e8c",
+        "marketplaceBuyer": true,
+        "marketplaceSupplier": false,
+        "scrapBuyer": false,
+        "scrapSupplier": false,
+        "cloudFactoryBuyer": false,
+        "cloudFactorySeller": false,
+        "status": "active",
+        "createdAt": "2024-10-29T05:47:43.972Z",
+        "__v": 0
+      },
+      "company": {
+        "_id": "672076ff6ce1e4a2575c7e90",
+        "user": "672076ff6ce1e4a2575c7e8c",
+        "contact": "6204510919",
+        "status": "pending",
+        "createdAt": "2024-10-29T05:47:43.976Z",
+        "__v": 0
+      }
+    }
+  },
+  "status": 200,
+  "statusText": "OK",
+  "headers": {
+    "content-length": "1853",
+    "content-type": "application/json; charset=utf-8"
+  },
+  "config": {
+    "transitional": {
+      "silentJSONParsing": true,
+      "forcedJSONParsing": true,
+      "clarifyTimeoutError": false
+    },
+    "adapter": ["xhr", "http", "fetch"],
+    "transformRequest": [null],
+    "transformResponse": [null],
+    "timeout": 0,
+    "xsrfCookieName": "XSRF-TOKEN",
+    "xsrfHeaderName": "X-XSRF-TOKEN",
+    "maxContentLength": -1,
+    "maxBodyLength": -1,
+    "env": {},
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Content-Type": "application/json"
+    },
+    "baseURL": "https://live.sgbajranglogistics.com:6001",
+    "method": "post",
+    "url": "/api/auth/verifyOTP",
+    "data": "{\"phoneNo\":\"6204510919\",\"otp\":123456}"
+  },
+  "request": {}
+}
