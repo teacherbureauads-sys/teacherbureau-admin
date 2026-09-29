@@ -10,10 +10,14 @@ const getSelectedSite = () => {
     return DEFAULT_SITE;
   }
 
-  return (
-    localStorage.getItem("selectedSite") ||
-    DEFAULT_SITE
-  );
+  try {
+    return (
+      window.localStorage.getItem("selectedSite") ||
+      DEFAULT_SITE
+    );
+  } catch (error) {
+    return DEFAULT_SITE;
+  }
 };
 
 const getHeaders = (token) => ({
@@ -48,7 +52,7 @@ export const createService = createAsyncThunk(
       return response?.data?.data;
     } catch (error) {
       return rejectWithValue(
-        error?.response?.data ||
+        error?.response?.data?.message ||
           "Failed to create service."
       );
     }
@@ -60,10 +64,10 @@ export const createService = createAsyncThunk(
 // =====================================================
 export const fetchServices = createAsyncThunk(
   "service/fetchServices",
-  async (option, { rejectWithValue }) => {
+  async (option = {}, { rejectWithValue }) => {
     const {
       token,
-      filters,
+      filters = {},
     } = option;
 
     try {
@@ -104,7 +108,7 @@ export const fetchSingleServices = createAsyncThunk(
         headers: getHeaders(token),
       });
 
-      return response?.data?.data;
+      return response?.data;
     } catch (error) {
       return rejectWithValue(
         error?.response?.data?.message ||
@@ -132,7 +136,7 @@ export const deleteService = createAsyncThunk(
         headers: getHeaders(token),
       });
 
-      return response?.data?.data;
+      return response?.data;
     } catch (error) {
       return rejectWithValue(
         error?.response?.data?.message ||
@@ -174,138 +178,92 @@ const serviceSlice = createSlice({
       // =================================================
       // CREATE SERVICE
       // =================================================
-      .addCase(
-        createService.pending,
-        (state) => {
-          state.loading = true;
-          state.error = null;
-        }
-      )
+      .addCase(createService.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
 
-      .addCase(
-        createService.fulfilled,
-        (state) => {
-          state.loading = false;
-        }
-      )
+      .addCase(createService.fulfilled, (state) => {
+        state.loading = false;
+      })
 
-      .addCase(
-        createService.rejected,
-        (state, action) => {
-          state.loading = false;
-          state.error = action.payload;
-        }
-      )
+      .addCase(createService.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
 
       // =================================================
       // FETCH SERVICES
       // =================================================
-      .addCase(
-        fetchServices.pending,
-        (state) => {
-          state.dataLoading = true;
-          state.error = null;
-        }
-      )
+      .addCase(fetchServices.pending, (state) => {
+        state.dataLoading = true;
+        state.error = null;
+      })
 
-      .addCase(
-        fetchServices.fulfilled,
-        (state, action) => {
-          const {
-            data,
-            count,
-          } = action.payload || {};
+      .addCase(fetchServices.fulfilled, (state, action) => {
+        const {
+          data,
+          count,
+        } = action.payload || {};
 
-          state.dataLoading = false;
-          state.serviceList = data || [];
-          state.documentCount = count || 0;
-        }
-      )
+        state.dataLoading = false;
+        state.serviceList = data || [];
+        state.documentCount = count || 0;
+      })
 
-      .addCase(
-        fetchServices.rejected,
-        (state, action) => {
-          state.dataLoading = false;
-          state.error = action.payload;
-        }
-      )
+      .addCase(fetchServices.rejected, (state, action) => {
+        state.dataLoading = false;
+        state.error = action.payload;
+      })
 
       // =================================================
       // FETCH SINGLE SERVICE
       // =================================================
-      .addCase(
-        fetchSingleServices.pending,
-        (state) => {
-          state.dataLoading = true;
-          state.error = null;
-        }
-      )
+      .addCase(fetchSingleServices.pending, (state) => {
+        state.dataLoading = true;
+        state.error = null;
+      })
 
-      .addCase(
-        fetchSingleServices.fulfilled,
-        (state, action) => {
-          const {
-            data,
-            count,
-          } = action.payload || {};
+      .addCase(fetchSingleServices.fulfilled, (state, action) => {
+        state.dataLoading = false;
+        state.singleService = action.payload?.data || {};
+      })
 
-          state.dataLoading = false;
-          state.singleService = data || {};
-          state.documentCount = count || 0;
-        }
-      )
-
-      .addCase(
-        fetchSingleServices.rejected,
-        (state, action) => {
-          state.dataLoading = false;
-          state.error = action.payload;
-        }
-      )
+      .addCase(fetchSingleServices.rejected, (state, action) => {
+        state.dataLoading = false;
+        state.error = action.payload;
+      })
 
       // =================================================
       // DELETE SERVICE
       // =================================================
-      .addCase(
-        deleteService.pending,
-        (state) => {
-          state.loading = true;
-          state.error = null;
-        }
-      )
+      .addCase(deleteService.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
 
-      .addCase(
-        deleteService.fulfilled,
-        (state, action) => {
-          state.loading = false;
+      .addCase(deleteService.fulfilled, (state, action) => {
+        state.loading = false;
 
-          const deletedSlug =
-            action.meta.arg?.slug;
+        const deletedSlug = action.meta.arg?.slug;
 
-          state.serviceList =
-            state.serviceList.filter(
-              (service) =>
-                service.slug !== deletedSlug
-            );
+        state.serviceList = state.serviceList.filter(
+          (service) => service.slug !== deletedSlug
+        );
 
-          state.documentCount = Math.max(
-            0,
-            state.documentCount - 1
-          );
-        }
-      )
+        state.documentCount = Math.max(
+          0,
+          state.documentCount - 1
+        );
+      })
 
-      .addCase(
-        deleteService.rejected,
-        (state, action) => {
-          state.loading = false;
-          state.error = action.payload;
-        }
-      );
+      .addCase(deleteService.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
   },
 });
 
-export const { resetError } =
-  serviceSlice.actions;
+export const { resetError } = serviceSlice.actions;
 
 export default serviceSlice.reducer;
