@@ -10,10 +10,14 @@ const getSelectedSite = () => {
     return DEFAULT_SITE;
   }
 
-  return (
-    localStorage.getItem("selectedSite") ||
-    DEFAULT_SITE
-  );
+  try {
+    return (
+      window.localStorage.getItem("selectedSite") ||
+      DEFAULT_SITE
+    );
+  } catch (error) {
+    return DEFAULT_SITE;
+  }
 };
 
 const getHeaders = (token) => ({
@@ -56,8 +60,8 @@ export const createBlog = createAsyncThunk(
 // =====================================================
 export const fetchBlogs = createAsyncThunk(
   "blog/fetchBlogs",
-  async (option, { rejectWithValue }) => {
-    const { token, filters } = option;
+  async (option = {}, { rejectWithValue }) => {
+    const { token, filters = {} } = option;
 
     try {
       const response = await axios({
@@ -94,7 +98,7 @@ export const fetchSingleBlog = createAsyncThunk(
         headers: getHeaders(token),
       });
 
-      return response?.data?.data;
+      return response?.data;
     } catch (error) {
       return rejectWithValue(
         error?.response?.data?.message ||
@@ -205,10 +209,8 @@ const blogSlice = createSlice({
       })
 
       .addCase(fetchSingleBlog.fulfilled, (state, action) => {
-        const { data } = action.payload || {};
-
         state.dataLoading = false;
-        state.singleBlog = data || {};
+        state.singleBlog = action.payload?.data || {};
       })
 
       .addCase(fetchSingleBlog.rejected, (state, action) => {
@@ -227,12 +229,10 @@ const blogSlice = createSlice({
       .addCase(deleteBlog.fulfilled, (state, action) => {
         state.loading = false;
 
-        const deletedBlogId =
-          action.meta.arg.blogId;
+        const deletedBlogId = action.meta.arg.blogId;
 
         state.blogList = state.blogList.filter(
-          (blog) =>
-            blog._id !== deletedBlogId
+          (blog) => blog._id !== deletedBlogId
         );
 
         state.documentCount = Math.max(
