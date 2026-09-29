@@ -1,8 +1,29 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
+
 const BACKEND_API_BASE_URL = process.env.BACKEND_API_BASE_URL;
 
-// Async thunk to create a blog
+const DEFAULT_SITE = "hometuitionacademy";
+
+const getSelectedSite = () => {
+  if (typeof window === "undefined") {
+    return DEFAULT_SITE;
+  }
+
+  return (
+    localStorage.getItem("selectedSite") ||
+    DEFAULT_SITE
+  );
+};
+
+const getHeaders = (token) => ({
+  Authorization: `Bearer ${token}`,
+  "x-site": getSelectedSite(),
+});
+
+// =====================================================
+// CREATE / UPDATE BLOG
+// =====================================================
 export const createBlog = createAsyncThunk(
   "blog/createBlog",
   async (blogInput, { rejectWithValue }) => {
@@ -17,79 +38,100 @@ export const createBlog = createAsyncThunk(
         method: blogId ? "PUT" : "POST",
         url: endPoint,
         data: blogData,
-        headers: { Authorization: `Bearer ${token}` },
+        headers: getHeaders(token),
       });
+
       return response?.data?.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || "Failed to create blog."
+        error?.response?.data?.message ||
+          "Failed to create blog."
       );
     }
   }
 );
 
-// Async thunk to fetch all categories
+// =====================================================
+// FETCH ALL BLOGS
+// =====================================================
 export const fetchBlogs = createAsyncThunk(
   "blog/fetchBlogs",
   async (option, { rejectWithValue }) => {
     const { token, filters } = option;
+
     try {
       const response = await axios({
         method: "GET",
         url: `${BACKEND_API_BASE_URL}/api/blog`,
-        headers: { Authorization: `Bearer ${token}` },
+        headers: getHeaders(token),
         params: {
           ...filters,
         },
       });
+
       return response?.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || "Failed to fetch categories."
+        error?.response?.data?.message ||
+          "Failed to fetch blogs."
       );
     }
   }
 );
 
+// =====================================================
+// FETCH SINGLE BLOG
+// =====================================================
 export const fetchSingleBlog = createAsyncThunk(
   "blog/fetchSingleBlog",
   async (option, { rejectWithValue }) => {
     const { token, blogId } = option;
+
     try {
       const response = await axios({
         method: "GET",
         url: `${BACKEND_API_BASE_URL}/api/blog/${blogId}`,
-        headers: { Authorization: `Bearer ${token}` },
+        headers: getHeaders(token),
       });
+
       return response?.data?.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || "Failed to fetch categories."
+        error?.response?.data?.message ||
+          "Failed to fetch blog."
       );
     }
   }
 );
 
+// =====================================================
+// DELETE BLOG
+// =====================================================
 export const deleteBlog = createAsyncThunk(
   "blog/deleteBlog",
   async (option, { rejectWithValue }) => {
     const { token, blogId } = option;
+
     try {
       const response = await axios({
         method: "DELETE",
         url: `${BACKEND_API_BASE_URL}/api/admin/blog/${blogId}`,
-        headers: { Authorization: `Bearer ${token}` },
+        headers: getHeaders(token),
       });
+
       return response?.data;
     } catch (error) {
       return rejectWithValue(
-        error.response?.data?.message || "Failed to delete blog."
+        error?.response?.data?.message ||
+          "Failed to delete blog."
       );
     }
   }
 );
 
-// Initial state
+// =====================================================
+// INITIAL STATE
+// =====================================================
 const initialState = {
   blogList: [],
   singleBlog: {},
@@ -99,36 +141,33 @@ const initialState = {
   error: null,
 };
 
-// blog slice
+// =====================================================
+// BLOG SLICE
+// =====================================================
 const blogSlice = createSlice({
   name: "blog",
+
   initialState,
+
   reducers: {
     resetError: (state) => {
       state.error = null;
     },
   },
+
   extraReducers: (builder) => {
     builder
-      // Create blog
+
+      // =================================================
+      // CREATE BLOG
+      // =================================================
       .addCase(createBlog.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(createBlog.fulfilled, (state, action) => {
-        state.loading = false;
-        // const existingIndex = state.blogList.findIndex(
-        //   (blog) => blog._id === action.payload?._id
-        // );
 
-        // if (existingIndex === -1) {
-        //   // If the category does not exist, add it to the top (index 0)
-        //   state.blogList.unshift(action.payload);
-        // } else {
-        //   // If the category exists, update the entire object
-        //   state.blogList[existingIndex] = action.payload;
-        // }
-        // state.blogList.unshift(action.payload);
+      .addCase(createBlog.fulfilled, (state) => {
+        state.loading = false;
       })
 
       .addCase(createBlog.rejected, (state, action) => {
@@ -136,57 +175,79 @@ const blogSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Fetch Categories
+      // =================================================
+      // FETCH BLOGS
+      // =================================================
       .addCase(fetchBlogs.pending, (state) => {
         state.dataLoading = true;
         state.error = null;
       })
+
       .addCase(fetchBlogs.fulfilled, (state, action) => {
-        const { data, count } = action.payload;
+        const { data, count } = action.payload || {};
+
         state.dataLoading = false;
-        state.blogList = data; // Populate the blog list
-        state.documentCount = count;
+        state.blogList = data || [];
+        state.documentCount = count || 0;
       })
+
       .addCase(fetchBlogs.rejected, (state, action) => {
         state.dataLoading = false;
         state.error = action.payload;
       })
+
+      // =================================================
+      // FETCH SINGLE BLOG
+      // =================================================
       .addCase(fetchSingleBlog.pending, (state) => {
         state.dataLoading = true;
         state.error = null;
       })
+
       .addCase(fetchSingleBlog.fulfilled, (state, action) => {
-        const { data } = action.payload;
+        const { data } = action.payload || {};
+
         state.dataLoading = false;
-        state.singleBlog = data;
+        state.singleBlog = data || {};
       })
+
       .addCase(fetchSingleBlog.rejected, (state, action) => {
         state.dataLoading = false;
         state.error = action.payload;
       })
 
+      // =================================================
+      // DELETE BLOG
+      // =================================================
+      .addCase(deleteBlog.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
 
+      .addCase(deleteBlog.fulfilled, (state, action) => {
+        state.loading = false;
 
-.addCase(deleteBlog.pending, (state) => {
-  state.loading = true;
-  state.error = null;
-})
-.addCase(deleteBlog.fulfilled, (state, action) => {
-  state.loading = false;
+        const deletedBlogId =
+          action.meta.arg.blogId;
 
-  state.blogList = state.blogList.filter(
-    (blog) => blog._id !== action.meta.arg.blogId
-  );
+        state.blogList = state.blogList.filter(
+          (blog) =>
+            blog._id !== deletedBlogId
+        );
 
-  state.documentCount = Math.max(0, state.documentCount - 1);
-})
-.addCase(deleteBlog.rejected, (state, action) => {
-  state.loading = false;
-  state.error = action.payload;
-});
+        state.documentCount = Math.max(
+          0,
+          state.documentCount - 1
+        );
+      })
 
+      .addCase(deleteBlog.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
   },
 });
 
 export const { resetError } = blogSlice.actions;
+
 export default blogSlice.reducer;
