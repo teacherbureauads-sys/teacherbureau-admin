@@ -1,19 +1,26 @@
-// Falls back to the live backend if the Vercel variable is missing, and strips
-// trailing slashes ("host//api/..." is a 404 in Express). The admin panel does
-// NOT use the /s/<site> prefix — it sends the selected website in an
-// "x-site" header instead (see src/lib/site.js).
-const backendBaseUrl = (
-  process.env.BACKEND_API_BASE_URL ||
-  "https://hometuitionacademy-backend.onrender.com"
-)
+// ---- Multi-site setup -------------------------------------------------------
+// All websites share ONE backend + database + admin panel. Each website tells
+// the backend which site's data it wants through SITE_KEY. The key must match
+// a website added in the admin panel (Websites page).
+//   Vercel > Settings > Environment Variables:  SITE_KEY = teachersbureau
+const DEFAULT_SITE_KEY = "teachersbureau";
+const DEFAULT_BACKEND = "https://hometuitionacademy-backend.onrender.com";
+
+const siteKey = (process.env.SITE_KEY || DEFAULT_SITE_KEY).trim().toLowerCase();
+
+// Trailing slashes are stripped ("host//api/..." is a 404 in Express).
+let backendBase = (process.env.BACKEND_API_BASE_URL || DEFAULT_BACKEND)
   .trim()
   .replace(/\/+$/, "");
 
+// Every request from this site goes to <backend>/s/<siteKey>/api/...
+if (!/\/s\/[a-z0-9-]+$/.test(backendBase)) {
+  backendBase = `${backendBase}/s/${siteKey}`;
+}
+const backendBaseUrl = backendBase;
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  env: {
-    BACKEND_API_BASE_URL: backendBaseUrl,
-  },
   images: {
     unoptimized: true,
     remotePatterns: [
@@ -21,7 +28,23 @@ const nextConfig = {
         protocol: "https",
         hostname: "imagedelivery.net",
       },
+      {
+        protocol: "https",
+        hostname: "img.freepik.com",
+      },
+      {
+        protocol: "https",
+        hostname: "images.itsoftworld.com",
+      },
+      {
+        protocol: "https",
+        hostname: "images.itsoftworld.com",
+      },
     ],
+  },
+  env: {
+    BACKEND_API_BASE_URL: backendBaseUrl,
+    NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
   },
 };
 
