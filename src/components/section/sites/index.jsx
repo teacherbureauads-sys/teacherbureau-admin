@@ -7,6 +7,7 @@ import { errorToast, successToast } from "~/utils/toastMessage";
 import { getActiveSite, setActiveSite } from "~/lib/site";
 
 const BASE = process.env.BACKEND_API_BASE_URL;
+const DEFAULT_SITE = "hometuitionacademy";
 
 const toKey = (text) =>
   text
@@ -22,6 +23,7 @@ export default function SitesManager() {
   const [form, setForm] = useState({ name: "", key: "", domain: "" });
   const [keyTouched, setKeyTouched] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
 
   const load = useCallback(async () => {
     try {
@@ -67,6 +69,29 @@ export default function SitesManager() {
     }
   };
 
+  const handleDelete = async (site) => {
+    // Deleting only removes it from this list/dropdown — its blogs, services,
+    // categories and leads stay in the database under this key, untouched.
+    const confirmed = window.confirm(
+      `Remove "${site.name}" (${site.key}) from the website list?\n\nIts blogs, services, categories and leads will NOT be deleted — they stay saved under this key and come back if you re-add a website with the same key.`
+    );
+    if (!confirmed) return;
+
+    setDeletingId(site._id);
+    try {
+      await axios.delete(`${BASE}/api/admin/site/${site._id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      successToast("Website removed");
+      if (active === site.key) setActiveSite(DEFAULT_SITE);
+      load();
+    } catch (error) {
+      errorToast(error?.response?.data?.message || "Could not remove website");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-6 p-5 md:p-8">
       <div className="bg-white rounded-xl shadow-sm p-5">
@@ -97,18 +122,37 @@ export default function SitesManager() {
                   </td>
                   <td className="px-4 py-3">{site.domain || "—"}</td>
                   <td className="px-4 py-3 text-center">
-                    {active === site.key ? (
-                      <span className="px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs">
-                        Editing now
-                      </span>
-                    ) : (
-                      <button
-                        onClick={() => setActiveSite(site.key)}
-                        className="px-3 py-1 rounded-md border border-blue-500 text-blue-600 text-xs hover:bg-blue-50"
-                      >
-                        Edit this website
-                      </button>
-                    )}
+                    <div className="flex items-center justify-center gap-2">
+                      {active === site.key ? (
+                        <span className="px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs">
+                          Editing now
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => setActiveSite(site.key)}
+                          className="px-3 py-1 rounded-md border border-blue-500 text-blue-600 text-xs hover:bg-blue-50"
+                        >
+                          Edit this website
+                        </button>
+                      )}
+
+                      {site.key === DEFAULT_SITE ? (
+                        <span
+                          title="The default website can't be removed"
+                          className="px-3 py-1 rounded-md border border-gray-200 text-gray-300 text-xs cursor-not-allowed"
+                        >
+                          Delete
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => handleDelete(site)}
+                          disabled={deletingId === site._id}
+                          className="px-3 py-1 rounded-md border border-red-400 text-red-600 text-xs hover:bg-red-50 disabled:opacity-50"
+                        >
+                          {deletingId === site._id ? "Removing..." : "Delete"}
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
